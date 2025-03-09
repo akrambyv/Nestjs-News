@@ -1,4 +1,6 @@
-import { BaseEntity, BeforeInsert, BeforeUpdate, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { BaseEntity, BeforeInsert, BeforeUpdate, Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { CategoryEntity } from "./Category.entity";
+import { NewsActionHistory } from "./NewsActionHistory.entity";
 
 @Entity('news')
 export class NewsEntity extends BaseEntity {
@@ -31,6 +33,15 @@ export class NewsEntity extends BaseEntity {
 
     @UpdateDateColumn()
     updatedAt: Date;
+
+    @Column()
+    categoryId: number;
+
+    @ManyToOne(() => CategoryEntity, (item: CategoryEntity) => item.news)
+    category: CategoryEntity;
+
+    @OneToMany(() => NewsActionHistory, (item: NewsActionHistory) => item.news)
+    actionHistory: NewsActionHistory[];
 
     @BeforeInsert()
     @BeforeUpdate()

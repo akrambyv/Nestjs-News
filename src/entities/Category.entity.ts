@@ -1,4 +1,5 @@
-import { BaseEntity, BeforeInsert, BeforeUpdate, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { BaseEntity, BeforeInsert, BeforeUpdate, Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { NewsEntity } from "./News.entity";
 
 @Entity()
 export class CategoryEntity extends BaseEntity {
@@ -10,6 +11,10 @@ export class CategoryEntity extends BaseEntity {
 
     @Column()
     slug: string;
+
+    @OneToMany(() => NewsEntity, (item:NewsEntity) => item.category)
+    news: NewsEntity[];
+
 
     @BeforeInsert()
     @BeforeUpdate()
