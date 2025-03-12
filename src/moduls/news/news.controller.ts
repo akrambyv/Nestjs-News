@@ -6,7 +6,9 @@ import { ApiBearerAuth } from "@nestjs/swagger";
 import { UpdateNewsDto } from "./dto/update-news.dto";
 import { NewsListQueryDto } from "./dto/list-news.dto";
 import { NewsActionType } from "./news.types";
-import { AuthorizedUser } from "../auth/auth.types";
+import { AuthorizedRequest } from "../auth/auth.types";
+import { Roles } from "src/shared/decorator/role.decorator";
+import { UserRole } from "../user/user.types";
 
 @Controller('news')
 export class NewsController {
@@ -15,6 +17,11 @@ export class NewsController {
     @Get()
     list(@Query() query: NewsListQueryDto) {
         return this.newsService.list(query);
+    }
+
+    @Get(':id')
+    item(@Param('id') id: number) {
+        return this.newsService.item(id);
     }
 
 
@@ -37,7 +44,8 @@ export class NewsController {
     @Post(':id/action/:type')
     @ApiBearerAuth()
     @UseGuards(AuthGuard)
-    action(@Param('id') id: number, @Param('type') type: NewsActionType, @Req() req: AuthorizedUser) {
+    @Roles(UserRole.GUEST)
+    action(@Param('id') id: number, @Param('type') type: NewsActionType, @Req() req: AuthorizedRequest) {
         return this.newsService.action(id, type, req.user.id);
     }
 }

@@ -1,13 +1,15 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
+import { CanActivate, ExecutionContext, ForbiddenException, Injectable, UnauthorizedException } from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
 import { JwtService } from "@nestjs/jwt";
 import { Request } from "express";
-import { Observable } from "rxjs";
 import { UserService } from "src/moduls/user/user.service";
+import { UserRole } from "src/moduls/user/user.types";
 
 @Injectable()
 export class AuthGuard implements CanActivate {
 
     constructor(
+        private reflector: Reflector,
         private jwtService: JwtService,
         private userService: UserService,
     ) { }
@@ -25,10 +27,18 @@ export class AuthGuard implements CanActivate {
             let user = await this.userService.findUserById(payload.userId);
             if (!user) throw new Error();
 
+            let roles: UserRole[] | undefined = await this.reflector.get('roles', context.getHandler());
+
+            if (roles && !roles.includes(user.role)) {
+                throw new ForbiddenException("Forbidden");
+            }
+
             request['user'] = user;
             return true;
-
         } catch (err) {
+            if (err instanceof ForbiddenException) {
+                throw new ForbiddenException(err.message)
+            }
             throw new UnauthorizedException("Unauthorized")
         }
 

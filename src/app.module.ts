@@ -8,6 +8,8 @@ import { AuthModule } from './moduls/auth/auth.module';
 import { JwtModule } from '@nestjs/jwt';
 import { NewsModule } from './moduls/news/news.module';
 import { CategoryModule } from './moduls/category/category.module';
+import { join } from 'path';
+import { CommentModule } from './moduls/comment/comment.module';
 
 @Module({
   imports: [
@@ -16,7 +18,7 @@ import { CategoryModule } from './moduls/category/category.module';
       url: config.databaseUrl,
       migrations: [],
       synchronize: process.env.NODE_ENV === 'production' ? false : true,
-      autoLoadEntities: true,
+      entities: [join(__dirname, "entities/*.entity.{ts, js}")],
       logging: true,
     }),
     JwtModule.register({
@@ -30,6 +32,7 @@ import { CategoryModule } from './moduls/category/category.module';
     AuthModule,
     NewsModule,
     CategoryModule,
+    CommentModule,
 
   ],
   controllers: [AppController],

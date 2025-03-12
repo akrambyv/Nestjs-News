@@ -1,4 +1,4 @@
-import { UserGender } from "src/moduls/user/user.types";
+import { UserGender, UserRole } from "src/moduls/user/user.types";
 import { BaseEntity, BeforeInsert, BeforeUpdate, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 import * as bcrypt from 'bcrypt'
 
@@ -19,10 +19,13 @@ export class UserEntity extends BaseEntity {
     @Column({ type: 'enum', enum: UserGender, default: UserGender.MALE })
     gender: UserGender;
 
+    @Column({ type: 'enum', enum: UserRole, default: UserRole.GUEST })
+    role: UserRole;
+
     @BeforeInsert()
     @BeforeUpdate()
     async beforeSave() {
-        if(!this.password) return;
+        if (!this.password) return;
 
         this.password = await bcrypt.hash(this.password, 10);
     }
