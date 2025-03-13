@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -8,19 +8,16 @@ import { AuthModule } from './moduls/auth/auth.module';
 import { JwtModule } from '@nestjs/jwt';
 import { NewsModule } from './moduls/news/news.module';
 import { CategoryModule } from './moduls/category/category.module';
-import { join } from 'path';
 import { CommentModule } from './moduls/comment/comment.module';
+import { ClsModule } from 'nestjs-cls';
+import DataSource from './config/typeorm';
+import { LoggingMiddleware } from './middlewares/logging.middleware';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      url: config.databaseUrl,
-      migrations: [],
-      synchronize: process.env.NODE_ENV === 'production' ? false : true,
-      entities: [join(__dirname, "entities/*.entity.{ts, js}")],
-      logging: true,
-    }),
+    TypeOrmModule.forRoot(DataSource.options),
     JwtModule.register({
       global: true,
       secret: config.jwtSecret,
@@ -28,6 +25,16 @@ import { CommentModule } from './moduls/comment/comment.module';
         expiresIn: '1d',
       }
     }),
+    ClsModule.forRoot({
+      global: true,
+      guard: { mount: true },
+    }),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 10000,
+        limit: 2,
+      },
+    ]),
     UserModule,
     AuthModule,
     NewsModule,
@@ -36,6 +43,10 @@ import { CommentModule } from './moduls/comment/comment.module';
 
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerModule }],
 })
-export class AppModule { }
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(LoggingMiddleware).forRoutes('*');
+  }
+}

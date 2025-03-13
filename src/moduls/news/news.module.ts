@@ -10,5 +10,6 @@ import { NewsActionHistory } from "src/entities/NewsActionHistory.entity";
     imports: [TypeOrmModule.forFeature([NewsEntity, NewsActionHistory]), CategoryModule],
     controllers: [NewsController],
     providers: [NewsService],
+    exports: [NewsService],
 })
 export class NewsModule { }

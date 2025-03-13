@@ -8,16 +8,19 @@ import { UpdateNewsDto } from "./dto/update-news.dto";
 import { NewsListQueryDto } from "./dto/list-news.dto";
 import { NewsActionType } from "./news.types";
 import { NewsActionHistory } from "src/entities/NewsActionHistory.entity";
+import { ClsService } from "nestjs-cls";
+import { UserEntity } from "src/entities/User.entitiy";
 
 @Injectable()
 export class NewsService {
     constructor(
+        private cls: ClsService,
         private categoryService: CategoryService,
         @InjectRepository(NewsEntity)
         private newsRepo: Repository<NewsEntity>,
         @InjectRepository(NewsActionHistory)
         private newsActionHistoryRepo: Repository<NewsActionHistory>
-    ) { } 
+    ) { }
 
     async list(params: NewsListQueryDto) {
         let where: FindOptionsWhere<NewsEntity> = {};
@@ -109,6 +112,11 @@ export class NewsService {
             },
         });
     }
+
+    exists(id: number) {
+        return this.newsRepo.exists({ where: { id } });
+    }
+
     async create(params: CreateNewsDto) {
         let category = await this.categoryService.findById(params.categoryId);
         if (!category) throw new NotFoundException('Category is not found');
@@ -133,7 +141,8 @@ export class NewsService {
         };
     }
 
-    async action(newsId: number, type: NewsActionType, userId: number) {
+    async action(newsId: number, type: NewsActionType) {
+        let user: UserEntity = this.cls.get('user');
         let item = await this.newsRepo.findOne({ where: { id: newsId } });
 
         if (!item) throw new NotFoundException("News is not found");
@@ -141,7 +150,7 @@ export class NewsService {
         let userAction = await this.newsActionHistoryRepo.findOne({
             where: {
                 newsId: newsId,
-                userId: userId,
+                userId: user.id,
                 actionType: type,
             },
         });
@@ -154,7 +163,7 @@ export class NewsService {
         } else {
             await this.newsActionHistoryRepo.save({
                 newsId: newsId,
-                userId: userId,
+                userId: user.id,
                 actionType: type,
             });
         }

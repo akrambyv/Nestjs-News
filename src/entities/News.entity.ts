@@ -29,6 +29,9 @@ export class NewsEntity extends BaseEntity {
     @Column({ default: 0 })
     dislike: number;
 
+    @Column({ default: false })
+    hot: boolean;
+
     @CreateDateColumn()
     createdAt: Date;
 

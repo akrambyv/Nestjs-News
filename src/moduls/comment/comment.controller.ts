@@ -24,9 +24,8 @@ export class CommentController {
     @ApiBearerAuth()
     create(
         @Param('newsId') newsId: number,
-        @Req() req: AuthorizedRequest,
         @Body() body: CreateCommentDto,
     ) {
-        return this.commentService.create(newsId, body, req.user.id);
+        return this.commentService.create(newsId, body);
     }
 }

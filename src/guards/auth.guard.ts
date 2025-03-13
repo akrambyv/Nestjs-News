@@ -2,6 +2,7 @@ import { CanActivate, ExecutionContext, ForbiddenException, Injectable, Unauthor
 import { Reflector } from "@nestjs/core";
 import { JwtService } from "@nestjs/jwt";
 import { Request } from "express";
+import { ClsService } from "nestjs-cls";
 import { UserService } from "src/moduls/user/user.service";
 import { UserRole } from "src/moduls/user/user.types";
 
@@ -9,6 +10,7 @@ import { UserRole } from "src/moduls/user/user.types";
 export class AuthGuard implements CanActivate {
 
     constructor(
+        private cls: ClsService,
         private reflector: Reflector,
         private jwtService: JwtService,
         private userService: UserService,
@@ -34,6 +36,7 @@ export class AuthGuard implements CanActivate {
             }
 
             request['user'] = user;
+            this.cls.set('user', user);
             return true;
         } catch (err) {
             if (err instanceof ForbiddenException) {
